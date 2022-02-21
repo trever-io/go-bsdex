@@ -13,7 +13,7 @@ type AssetBalance struct {
 type BalanceResponse []AssetBalance
 
 func (a *APIClient) Balance() (BalanceResponse, error) {
-	b, err := a.requestGET(BALANCE_ENDPOINT)
+	b, err := a.requestGET(BALANCE_ENDPOINT, nil)
 	if err != nil {
 		return nil, err
 	}

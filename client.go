@@ -1,11 +1,14 @@
 package bsdex
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -51,11 +54,11 @@ func (a *APIClient) getAuthHeader(now time.Time) string {
 	return fmt.Sprintf(AUTH_HEADER_FMT, a.key, sig)
 }
 
-func (a *APIClient) requestGET(endpoint string) ([]byte, error) {
-	return a.requestNoBody(endpoint, http.MethodGet)
+func (a *APIClient) requestGET(endpoint string, query map[string]string) ([]byte, error) {
+	return a.requestNoBody(endpoint, http.MethodGet, query)
 }
 
-func (a *APIClient) requestNoBody(endpoint string, method string) ([]byte, error) {
+func (a *APIClient) requestNoBody(endpoint string, method string, query map[string]string) ([]byte, error) {
 	if a.key == "" || a.secret == "" {
 		return nil, errors.New("missing credentials")
 	}
@@ -64,6 +67,45 @@ func (a *APIClient) requestNoBody(endpoint string, method string) ([]byte, error
 	authHeader := a.getAuthHeader(now)
 	url := fmt.Sprintf("%v%v", BASE_URL, endpoint)
 	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add(DATE_HEADER, now.Format(time.RFC1123))
+	req.Header.Add(API_KEY_HEADER, a.key)
+	req.Header.Add(AUTH_HEADER, authHeader)
+
+	if query != nil {
+		q := req.URL.Query()
+		for key, val := range query {
+			q.Add(key, val)
+		}
+		req.URL.RawQuery = q.Encode()
+	}
+
+	return a.doRequest(req)
+}
+
+func (a *APIClient) requestPOST(endpoint string, request interface{}) ([]byte, error) {
+	if a.key == "" || a.secret == "" {
+		return nil, errors.New("missing credentials")
+	}
+
+	var body io.Reader
+	if request != nil {
+		b, err := json.Marshal(request)
+		if err != nil {
+			return nil, err
+		}
+
+		body = bytes.NewReader(b)
+	}
+
+	now := time.Now().UTC()
+	authHeader := a.getAuthHeader(now)
+	url := fmt.Sprintf("%v%v", BASE_URL, endpoint)
+
+	req, err := http.NewRequest(http.MethodPost, url, body)
 	if err != nil {
 		return nil, err
 	}
