@@ -113,6 +113,7 @@ func (a *APIClient) requestPOST(endpoint string, request interface{}) ([]byte, e
 	req.Header.Add(DATE_HEADER, now.Format(time.RFC1123))
 	req.Header.Add(API_KEY_HEADER, a.key)
 	req.Header.Add(AUTH_HEADER, authHeader)
+	req.Header.Add("Content-Type", "application/json")
 
 	return a.doRequest(req)
 }
