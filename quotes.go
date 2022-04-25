@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 )
 
-const AUCTION_ENDPOINT = "/auction"
+const QUOTE_ENDPOINT = "/quote"
 const SYMBOL_SEPARATOR = "-"
 
-type AuctionResp struct {
+type QuoteResp struct {
 	BuyPrice   string `json:"buy_price"`
 	BuyVolume  string `json:"buy_volume"`
 	Market     string `json:"market"`
@@ -15,13 +15,13 @@ type AuctionResp struct {
 	SellVolume string `json:"sell_volume"`
 }
 
-func (a *APIClient) Auction(baseAsset string, quoteAsset string) (*AuctionResp, error) {
-  b, err := a.requestGET(baseAsset + SYMBOL_SEPARATOR + quoteAsset + AUCTION_ENDPOINT, nil)
+func (a *APIClient) Quote(baseAsset string, quoteAsset string) (*QuoteResp, error) {
+	b, err := a.requestGET("v1/"+baseAsset+SYMBOL_SEPARATOR+quoteAsset+QUOTE_ENDPOINT, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp := new(AuctionResp)
+	resp := new(QuoteResp)
 	err = json.Unmarshal(b, &resp)
 	return resp, err
 }
