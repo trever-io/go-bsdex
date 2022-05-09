@@ -23,7 +23,7 @@ type Withdrawal struct {
 }
 
 type CreateWithdrawalRequest struct {
-	Amount         float64 `json:"amount"`
+	Amount         string  `json:"amount"`
 	AssetId        string  `json:"asset_id"`
 	DestinationTag *string `json:"destination_tag"`
 	TargetAddress  string  `json:"target_address"`
@@ -61,7 +61,7 @@ func (a *APIClient) Withdrawals(assetId string, createdAfter *string, page *int)
 	return resp, err
 }
 
-func (a *APIClient) CreateWithdrawal(assetId string, amount float64, targetAddress string, destinationTag *string) (*WithdrawalResponse, error) {
+func (a *APIClient) CreateWithdrawal(assetId string, amount string, targetAddress string, destinationTag *string) (*WithdrawalResponse, error) {
 	req := &CreateWithdrawalRequest{
 		AssetId:        assetId,
 		Amount:         amount,
